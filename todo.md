@@ -220,16 +220,16 @@
 
 ## 🎨 AJUSTES VISUAIS
 
-- [ ] Adicionar logo BTREE no cabeçalho (sempre visível)
-- [ ] Adicionar logo Kobayashi no rodapé (sempre visível)
+- [x] Adicionar logo BTREE no cabeçalho (sempre visível)
+- [x] Adicionar logo Kobayashi no rodapé (sempre visível)
 
 ---
 
 ## 🔧 CONFIGURAÇÃO DE INFRAESTRUTURA
 
-- [ ] Configurar repositório GitHub frontend (btree_frontend)
+- [x] Configurar repositório GitHub frontend (btree_frontend)
 - [ ] Integrar com backend do Aza Connect (Render)
 - [ ] Configurar Cloudinary (usar mesmo do Aza Connect)
-- [ ] Compilar frontend para Hostinger
+- [x] Compilar frontend para Hostinger
 
 ---
