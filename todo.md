@@ -228,8 +228,15 @@
 ## 🔧 CONFIGURAÇÃO DE INFRAESTRUTURA
 
 - [x] Configurar repositório GitHub frontend (btree_frontend)
-- [ ] Integrar com backend do Aza Connect (Render)
+- [x] Criar arquivo SQL completo com todas as tabelas MySQL
+- [ ] Preparar backend para deploy no Render
+- [ ] Fazer push do backend no GitHub (btree_ambiental)
+- [ ] Atualizar repositório btree_frontend com código completo
+- [ ] Criar guia passo a passo de deploy no Render
+- [ ] Criar guia de configuração de variáveis de ambiente
+- [ ] Documentar conexão MySQL
 - [ ] Configurar Cloudinary (usar mesmo do Aza Connect)
 - [x] Compilar frontend para Hostinger
+- [ ] Testar deploy completo
 
 ---
