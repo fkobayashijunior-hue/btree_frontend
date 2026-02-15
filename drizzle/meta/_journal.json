@@ -15,6 +15,13 @@
       "when": 1770563177099,
       "tag": "0001_bouncy_black_bird",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1771181525092,
+      "tag": "0002_plain_squadron_supreme",
+      "breakpoints": true
     }
   ]
 }

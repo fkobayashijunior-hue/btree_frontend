@@ -240,3 +240,18 @@
 - [ ] Testar deploy completo
 
 ---
+
+## 🔐 SISTEMA DE AUTENTICAÇÃO PRÓPRIO
+
+- [x] Implementar registro de usuários (email/senha)
+- [x] Implementar login com JWT
+- [x] Criar middleware de autenticação
+- [x] Atualizar rotas protegidas
+- [x] Criar tela de login no frontend
+- [x] Criar tela de registro no frontend
+- [x] Remover dependências do Manus OAuth
+- [ ] Testar sistema de autenticação completo
+- [ ] Atualizar GitHub (backend e frontend)
+- [ ] Compilar frontend para Hostinger
+- [ ] Fazer deploy no Render
+

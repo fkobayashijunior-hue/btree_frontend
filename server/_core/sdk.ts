@@ -268,17 +268,24 @@ class SDKServer {
 
     const sessionUserId = session.openId;
     const signedInAt = new Date();
+    
+    // Tentar buscar por openId (OAuth) ou por email (autenticação própria)
     let user = await db.getUserByOpenId(sessionUserId);
-
-    // If user not in DB, sync from OAuth server automatically
+    
     if (!user) {
+      // Tentar buscar por email (para autenticação própria)
+      user = await db.getUserByEmail(sessionUserId);
+    }
+
+    // If user not in DB and has OAuth, sync from OAuth server automatically
+    if (!user && sessionUserId.includes('@') === false) {
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
         await db.upsertUser({
           openId: userInfo.openId,
-          name: userInfo.name || null,
-          email: userInfo.email ?? null,
-          loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
+          name: userInfo.name || '',
+          email: userInfo.email || '',
+          loginMethod: userInfo.loginMethod || userInfo.platform || 'oauth',
           lastSignedIn: signedInAt,
         });
         user = await db.getUserByOpenId(userInfo.openId);
@@ -292,10 +299,15 @@ class SDKServer {
       throw ForbiddenError("User not found");
     }
 
-    await db.upsertUser({
-      openId: user.openId,
-      lastSignedIn: signedInAt,
-    });
+    // Atualizar lastSignedIn
+    if (user.openId) {
+      await db.upsertUser({
+        openId: user.openId,
+        name: user.name || '',
+        email: user.email || '',
+        lastSignedIn: signedInAt,
+      });
+    }
 
     return user;
   }

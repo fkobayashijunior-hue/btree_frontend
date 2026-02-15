@@ -19,8 +19,9 @@ export async function getDb() {
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
+  // Validação: precisa ter openId OU email
+  if (!user.openId && !user.email) {
+    throw new Error("User openId or email is required for upsert");
   }
 
   const db = await getDb();
@@ -31,19 +32,20 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
   try {
     const values: InsertUser = {
-      openId: user.openId,
+      openId: user.openId || null,
+      name: user.name || '',
+      email: user.email || '',
     };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "email", "loginMethod"] as const;
+    const textFields = ["loginMethod", "passwordHash"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
       const value = user[field];
       if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
+      (values as any)[field] = value;
+      updateSet[field] = value;
     };
 
     textFields.forEach(assignNullable);
@@ -87,6 +89,28 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
+  }
+
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createUser(user: InsertUser) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.insert(users).values(user);
+  return result;
 }
 
 // TODO: add feature queries here as your schema grows.
