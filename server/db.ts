@@ -113,4 +113,33 @@ export async function createUser(user: InsertUser) {
   return result;
 }
 
+export async function updateUserPasswordByEmail(email: string, passwordHash: string, role: 'user' | 'admin' = 'admin') {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Primeiro verifica se o usuário existe
+  const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  
+  if (existing.length > 0) {
+    // Atualizar usuário existente
+    await db.update(users)
+      .set({ passwordHash, loginMethod: 'email', role, updatedAt: new Date() })
+      .where(eq(users.email, email));
+    return { action: 'updated' };
+  } else {
+    // Criar novo usuário
+    await db.insert(users).values({
+      email,
+      name: email.split('@')[0],
+      passwordHash,
+      loginMethod: 'email',
+      role,
+      lastSignedIn: new Date(),
+    });
+    return { action: 'created' };
+  }
+}
+
 // TODO: add feature queries here as your schema grows.

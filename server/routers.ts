@@ -5,7 +5,7 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { registerUser, loginUser, hashPassword } from "./auth";
 import { sdk } from "./_core/sdk";
-import { getUserByEmail, upsertUser } from "./db";
+import { getUserByEmail, upsertUser, updateUserPasswordByEmail } from "./db";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -82,15 +82,8 @@ export const appRouter = router({
           throw new Error('Chave inválida');
         }
         const passwordHash = await hashPassword(input.password);
-        await upsertUser({
-          email: input.email,
-          name: input.name,
-          passwordHash,
-          loginMethod: 'email',
-          role: 'admin',
-          lastSignedIn: new Date(),
-        });
-        return { success: true, message: `Admin ${input.email} criado/atualizado com sucesso` };
+        const result = await updateUserPasswordByEmail(input.email, passwordHash, 'admin');
+        return { success: true, message: `Admin ${input.email} ${result.action === 'updated' ? 'atualizado' : 'criado'} com sucesso` };
       }),
 
     logout: publicProcedure.mutation(({ ctx }) => {
