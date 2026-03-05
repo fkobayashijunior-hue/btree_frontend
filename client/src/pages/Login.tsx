@@ -104,7 +104,7 @@ export default function Login() {
           <img 
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663162723291/MXrNdjKBoryW8SZbHmjeHH/logo-kobayashi_82aef6a5.png" 
             alt="Kobayashi" 
-            className="h-6 w-auto"
+            className="h-10 w-auto"
           />
         </div>
       </footer>
