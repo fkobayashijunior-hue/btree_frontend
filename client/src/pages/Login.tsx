@@ -89,9 +89,8 @@ export default function Login() {
             </Button>
 
             <div className="text-center text-sm text-gray-600">
-              Não tem uma conta?{" "}
-              <Link href="/register" className="text-emerald-600 hover:text-emerald-700 font-semibold hover:underline">
-                Registre-se
+              <Link href="/forgot-password" className="text-emerald-600 hover:text-emerald-700 font-semibold hover:underline">
+                Esqueci minha senha
               </Link>
             </div>
           </CardFooter>

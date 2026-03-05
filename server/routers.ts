@@ -5,7 +5,9 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { registerUser, loginUser, hashPassword } from "./auth";
 import { sdk } from "./_core/sdk";
-import { getUserByEmail, upsertUser, updateUserPasswordByEmail } from "./db";
+import { getUserByEmail, upsertUser, updateUserPasswordByEmail, createPasswordResetToken, getValidResetToken, markTokenAsUsed } from "./db";
+import { sendPasswordResetEmail } from "./email";
+import crypto from "crypto";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -84,6 +86,58 @@ export const appRouter = router({
         const passwordHash = await hashPassword(input.password);
         const result = await updateUserPasswordByEmail(input.email, passwordHash, 'admin');
         return { success: true, message: `Admin ${input.email} ${result.action === 'updated' ? 'atualizado' : 'criado'} com sucesso` };
+      }),
+
+    // Solicitar recuperação de senha
+    forgotPassword: publicProcedure
+      .input(z.object({
+        email: z.string().email('Email inválido'),
+        origin: z.string().url().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const user = await getUserByEmail(input.email);
+        // Sempre retornar sucesso para não revelar se email existe
+        if (!user) {
+          return { success: true };
+        }
+
+        const token = crypto.randomBytes(48).toString('hex');
+        await createPasswordResetToken(user.id, token);
+
+        const baseUrl = input.origin || 'https://btreeambiental.com';
+        const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+
+        await sendPasswordResetEmail(user.email, user.name, resetUrl);
+
+        return { success: true };
+      }),
+
+    // Redefinir senha com token
+    resetPassword: publicProcedure
+      .input(z.object({
+        token: z.string().min(1),
+        password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+      }))
+      .mutation(async ({ input }) => {
+        const resetToken = await getValidResetToken(input.token);
+        if (!resetToken) {
+          throw new Error('Token inválido ou expirado. Solicite uma nova recuperação de senha.');
+        }
+
+        const passwordHash = await hashPassword(input.password);
+        const { getDb } = await import('./db');
+        const { users } = await import('../drizzle/schema');
+        const { eq } = await import('drizzle-orm');
+        const dbInstance = await getDb();
+        if (!dbInstance) throw new Error('Database not available');
+
+        await dbInstance.update(users)
+          .set({ passwordHash, loginMethod: 'email', updatedAt: new Date() })
+          .where(eq(users.id, resetToken.userId));
+
+        await markTokenAsUsed(resetToken.id);
+
+        return { success: true };
       }),
 
     logout: publicProcedure.mutation(({ ctx }) => {
