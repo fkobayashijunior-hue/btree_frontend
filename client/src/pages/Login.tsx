@@ -15,7 +15,7 @@ export default function Login() {
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: () => {
       toast.success("Login realizado! Bem-vindo ao BTREE Ambiental");
-      setLocation("/");
+      setLocation("/app");
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao fazer login");
