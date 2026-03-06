@@ -13,6 +13,8 @@ import Collaborators from "./pages/Collaborators";
 import BiometricAttendancePage from "./pages/BiometricAttendance";
 import AttendanceList from "./pages/AttendanceList";
 import Landing from "./pages/Landing";
+import SectorsEquipment from "./pages/SectorsEquipment";
+import AccessControl from "./pages/AccessControl";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -24,6 +26,8 @@ function Router() {
       <Route path={"/colaboradores"} component={Collaborators} />
       <Route path={"/presenca"} component={BiometricAttendancePage} />
       <Route path={"/presencas"} component={AttendanceList} />
+      <Route path={"/setores"} component={SectorsEquipment} />
+      <Route path={"/controle-acesso"} component={AccessControl} />
       <Route path={"/"} component={Landing} />
       <Route path={"/app"} component={Home} />
       <Route path={"/usuarios"} component={UsersPage} />

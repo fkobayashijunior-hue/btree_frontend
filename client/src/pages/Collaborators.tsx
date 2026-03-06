@@ -3,10 +3,9 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { UserPlus, Search, Camera, User, MapPin, Phone, CreditCard, Shirt, Edit, Users } from "lucide-react";
@@ -34,7 +33,7 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 type FormData = {
-  name: string; email: string; phone: string; cpf: string; rg: string;
+  name: string; email: string; phone: string; cpf: string;
   address: string; city: string; state: string; zipCode: string;
   role: string; pixKey: string; dailyRate: string;
   employmentType: string; shirtSize: string; pantsSize: string;
@@ -42,12 +41,35 @@ type FormData = {
 };
 
 const emptyForm: FormData = {
-  name: "", email: "", phone: "", cpf: "", rg: "",
+  name: "", email: "", phone: "", cpf: "",
   address: "", city: "", state: "", zipCode: "",
   role: "operador", pixKey: "", dailyRate: "",
   employmentType: "diarista", shirtSize: "", pantsSize: "",
   shoeSize: "", bootSize: "", photoBase64: "",
 };
+
+// Native select wrapper to avoid shadcn Select portal issues inside Dialog
+function NativeSelect({ label, value, onChange, options }: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div>
+      <Label className="text-sm font-medium text-gray-700 mb-1 block">{label}</Label>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        {options.map(o => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 export default function Collaborators() {
   const [search, setSearch] = useState("");
@@ -99,7 +121,6 @@ export default function Collaborators() {
       email: form.email || undefined,
       phone: form.phone || undefined,
       cpf: form.cpf || undefined,
-      rg: form.rg || undefined,
       address: form.address || undefined,
       city: form.city || undefined,
       state: form.state || undefined,
@@ -126,7 +147,7 @@ export default function Collaborators() {
     setEditId(c.id);
     setForm({
       name: c.name || "", email: c.email || "", phone: c.phone || "",
-      cpf: c.cpf || "", rg: c.rg || "", address: c.address || "",
+      cpf: c.cpf || "", address: c.address || "",
       city: c.city || "", state: c.state || "", zipCode: c.zipCode || "",
       role: c.role || "operador", pixKey: c.pixKey || "", dailyRate: c.dailyRate || "",
       employmentType: c.employmentType || "diarista", shirtSize: c.shirtSize || "",
@@ -207,10 +228,6 @@ export default function Collaborators() {
                       <Input value={form.cpf} onChange={e => setForm(f => ({ ...f, cpf: e.target.value }))} placeholder="000.000.000-00" />
                     </div>
                     <div>
-                      <Label>RG</Label>
-                      <Input value={form.rg} onChange={e => setForm(f => ({ ...f, rg: e.target.value }))} placeholder="00.000.000-0" />
-                    </div>
-                    <div>
                       <Label>Celular</Label>
                       <Input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="(00) 00000-0000" />
                     </div>
@@ -219,26 +236,24 @@ export default function Collaborators() {
                       <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@exemplo.com" />
                     </div>
                     <div>
-                      <Label>Função *</Label>
-                      <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(ROLE_LABELS).map(([v, l]) => (
-                            <SelectItem key={v} value={v}>{l}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <NativeSelect
+                        label="Função *"
+                        value={form.role}
+                        onChange={v => setForm(f => ({ ...f, role: v }))}
+                        options={Object.entries(ROLE_LABELS).map(([v, l]) => ({ value: v, label: l }))}
+                      />
                     </div>
                     <div>
-                      <Label>Tipo de Vínculo</Label>
-                      <Select value={form.employmentType} onValueChange={v => setForm(f => ({ ...f, employmentType: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="clt">CLT</SelectItem>
-                          <SelectItem value="terceirizado">Terceirizado</SelectItem>
-                          <SelectItem value="diarista">Diarista</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <NativeSelect
+                        label="Tipo de Vínculo"
+                        value={form.employmentType}
+                        onChange={v => setForm(f => ({ ...f, employmentType: v }))}
+                        options={[
+                          { value: "clt", label: "CLT" },
+                          { value: "terceirizado", label: "Terceirizado" },
+                          { value: "diarista", label: "Diarista" },
+                        ]}
+                      />
                     </div>
                   </div>
                 </TabsContent>
@@ -284,15 +299,15 @@ export default function Collaborators() {
                     </div>
 
                     <div>
-                      <Label>Camisa</Label>
-                      <Select value={form.shirtSize} onValueChange={v => setForm(f => ({ ...f, shirtSize: v }))}>
-                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                        <SelectContent>
-                          {["PP", "P", "M", "G", "GG", "XGG"].map(s => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <NativeSelect
+                        label="Camisa"
+                        value={form.shirtSize}
+                        onChange={v => setForm(f => ({ ...f, shirtSize: v }))}
+                        options={[
+                          { value: "", label: "Selecione" },
+                          ...["PP", "P", "M", "G", "GG", "XGG"].map(s => ({ value: s, label: s })),
+                        ]}
+                      />
                     </div>
                     <div>
                       <Label>Calça (número)</Label>
@@ -400,8 +415,13 @@ export default function Collaborators() {
                       {c.active ? "Ativo" : "Inativo"}
                     </Badge>
                   </div>
-                  <Button size="sm" variant="ghost" onClick={() => openEdit(c)} className="h-8 w-8 p-0">
-                    <Edit className="h-4 w-4 text-gray-500" />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-gray-400 hover:text-emerald-600"
+                    onClick={() => openEdit(c)}
+                  >
+                    <Edit className="h-4 w-4" />
                   </Button>
                 </div>
               </CardContent>

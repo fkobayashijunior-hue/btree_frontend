@@ -217,3 +217,33 @@ export type FuelRecord = typeof fuelRecords.$inferSelect;
 export type InsertFuelRecord = typeof fuelRecords.$inferInsert;
 export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
 export type InsertAttendanceRecord = typeof attendanceRecords.$inferInsert;
+
+// Setores da empresa
+export const sectors = mysqlTable("sectors", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  color: varchar("color", { length: 20 }).default("#16a34a"),
+  active: int("active").default(1).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  createdBy: int("created_by").references(() => users.id),
+});
+export type Sector = typeof sectors.$inferSelect;
+export type InsertSector = typeof sectors.$inferInsert;
+
+// Permissões de acesso por função (RBAC)
+// Define quais módulos cada função pode acessar
+export const rolePermissions = mysqlTable("role_permissions", {
+  id: int("id").autoincrement().primaryKey(),
+  roleName: varchar("role_name", { length: 50 }).notNull(), // ex: mecanico, motorista
+  module: varchar("module", { length: 50 }).notNull(), // ex: colaboradores, equipamentos, presenca
+  canView: int("can_view").default(0).notNull(),
+  canCreate: int("can_create").default(0).notNull(),
+  canEdit: int("can_edit").default(0).notNull(),
+  canDelete: int("can_delete").default(0).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  updatedBy: int("updated_by").references(() => users.id),
+});
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type InsertRolePermission = typeof rolePermissions.$inferInsert;
