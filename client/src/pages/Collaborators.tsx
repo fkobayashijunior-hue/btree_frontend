@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { UserPlus, Search, Camera, User, MapPin, Phone, CreditCard, Shirt, Edit, Users } from "lucide-react";
+import { UserPlus, Search, Camera, User, MapPin, Phone, CreditCard, Shirt, Edit, Users, Eye, EyeOff, Lock } from "lucide-react";
 
 const ROLE_LABELS: Record<string, string> = {
   administrativo: "Administrativo",
@@ -38,6 +38,7 @@ type FormData = {
   role: string; pixKey: string; dailyRate: string;
   employmentType: string; shirtSize: string; pantsSize: string;
   shoeSize: string; bootSize: string; photoBase64: string;
+  password: string;
 };
 
 const emptyForm: FormData = {
@@ -45,7 +46,7 @@ const emptyForm: FormData = {
   address: "", city: "", state: "", zipCode: "",
   role: "operador", pixKey: "", dailyRate: "",
   employmentType: "diarista", shirtSize: "", pantsSize: "",
-  shoeSize: "", bootSize: "", photoBase64: "",
+  shoeSize: "", bootSize: "", photoBase64: "", password: "",
 };
 
 // Native select wrapper to avoid shadcn Select portal issues inside Dialog
@@ -76,6 +77,7 @@ export default function Collaborators() {
   const [isOpen, setIsOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
+  const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const utils = trpc.useUtils();
 
@@ -134,6 +136,7 @@ export default function Collaborators() {
       shoeSize: form.shoeSize || undefined,
       bootSize: form.bootSize || undefined,
       photoBase64: form.photoBase64 || undefined,
+      password: form.password || undefined,
     };
 
     if (editId) {
@@ -152,7 +155,7 @@ export default function Collaborators() {
       role: c.role || "operador", pixKey: c.pixKey || "", dailyRate: c.dailyRate || "",
       employmentType: c.employmentType || "diarista", shirtSize: c.shirtSize || "",
       pantsSize: c.pantsSize || "", shoeSize: c.shoeSize || "", bootSize: c.bootSize || "",
-      photoBase64: "",
+      photoBase64: "", password: "",
     });
     setIsOpen(true);
   };
@@ -234,6 +237,26 @@ export default function Collaborators() {
                     <div>
                       <Label>E-mail</Label>
                       <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@exemplo.com" />
+                    </div>
+                    <div>
+                      <Label className="flex items-center gap-1"><Lock className="h-3 w-3" /> Senha de Acesso ao Sistema</Label>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          value={form.password}
+                          onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                          placeholder={editId ? "Deixe em branco para manter" : "Senha para login"}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(v => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">O colaborador usará o e-mail e esta senha para entrar no sistema</p>
                     </div>
                     <div>
                       <NativeSelect

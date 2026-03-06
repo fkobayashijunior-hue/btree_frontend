@@ -1,9 +1,10 @@
 import { protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
-import { getDb } from "../db";
-import { collaborators, biometricAttendance } from "../../drizzle/schema";
-import { eq, desc, and, gte, lte, like, or } from "drizzle-orm";
+import { getDb, updateUserPasswordByEmail } from "../db";
+import { collaborators, biometricAttendance, users } from "../../drizzle/schema";
+import { eq, desc, and, like, or } from "drizzle-orm";
 import { storagePut } from "../storage";
+import bcrypt from "bcryptjs";
 
 const collaboratorRoles = [
   "administrativo", "encarregado", "mecanico", "motosserrista",
@@ -22,7 +23,6 @@ export const collaboratorsRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      let query = db.select().from(collaborators);
       const conditions = [];
 
       if (input?.active !== undefined) {
@@ -72,7 +72,6 @@ export const collaboratorsRouter = router({
       email: z.string().email().optional().or(z.literal("")),
       phone: z.string().optional(),
       cpf: z.string().optional(),
-      rg: z.string().optional(),
       address: z.string().optional(),
       city: z.string().optional(),
       state: z.string().max(2).optional(),
@@ -85,8 +84,9 @@ export const collaboratorsRouter = router({
       pantsSize: z.string().optional(),
       shoeSize: z.string().optional(),
       bootSize: z.string().optional(),
-      photoBase64: z.string().optional(), // base64 da foto
-      faceDescriptor: z.string().optional(), // JSON do vetor facial
+      photoBase64: z.string().optional(),
+      faceDescriptor: z.string().optional(),
+      password: z.string().min(4).optional(), // senha de acesso ao sistema
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
@@ -103,12 +103,22 @@ export const collaboratorsRouter = router({
         photoUrl = result.url;
       }
 
+      // Se tem email + senha, criar/atualizar usuário de sistema
+      let userId: number | undefined;
+      if (input.email && input.password) {
+        const passwordHash = await bcrypt.hash(input.password, 10);
+        await updateUserPasswordByEmail(input.email, passwordHash, 'user');
+        // Buscar o id do usuário criado/atualizado
+        const userRecord = await db.select({ id: users.id }).from(users)
+          .where(eq(users.email, input.email)).limit(1);
+        if (userRecord.length > 0) userId = userRecord[0].id;
+      }
+
       const [inserted] = await db.insert(collaborators).values({
         name: input.name,
         email: input.email || undefined,
         phone: input.phone,
         cpf: input.cpf,
-        rg: input.rg,
         address: input.address,
         city: input.city,
         state: input.state,
@@ -123,6 +133,7 @@ export const collaboratorsRouter = router({
         bootSize: input.bootSize,
         photoUrl,
         faceDescriptor: input.faceDescriptor,
+        userId: userId || null,
         createdBy: ctx.user.id,
       });
 
@@ -139,7 +150,6 @@ export const collaboratorsRouter = router({
       email: z.string().email().optional().or(z.literal("")),
       phone: z.string().optional(),
       cpf: z.string().optional(),
-      rg: z.string().optional(),
       address: z.string().optional(),
       city: z.string().optional(),
       state: z.string().max(2).optional(),
@@ -155,14 +165,16 @@ export const collaboratorsRouter = router({
       photoBase64: z.string().optional(),
       faceDescriptor: z.string().optional(),
       active: z.boolean().optional(),
+      password: z.string().min(4).optional(), // nova senha (opcional na edição)
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      const { id, photoBase64, ...rest } = input;
+      const { id, photoBase64, password, ...rest } = input;
       const updateData: any = { ...rest };
 
+      // Upload de nova foto se fornecida
       if (photoBase64) {
         const base64Data = photoBase64.replace(/^data:image\/\w+;base64,/, "");
         const buffer = Buffer.from(base64Data, "base64");
@@ -173,6 +185,18 @@ export const collaboratorsRouter = router({
 
       if (updateData.active !== undefined) {
         updateData.active = updateData.active ? 1 : 0;
+      }
+
+      // Se tem email + nova senha, atualizar usuário de sistema
+      if (input.email && password) {
+        const passwordHash = await bcrypt.hash(password, 10);
+        await updateUserPasswordByEmail(input.email, passwordHash, 'user');
+        // Vincular userId ao colaborador
+        const userRecord = await db.select({ id: users.id }).from(users)
+          .where(eq(users.email, input.email)).limit(1);
+        if (userRecord.length > 0) {
+          updateData.userId = userRecord[0].id;
+        }
       }
 
       await db.update(collaborators).set(updateData).where(eq(collaborators.id, id));
