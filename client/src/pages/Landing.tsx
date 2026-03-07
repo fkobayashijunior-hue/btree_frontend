@@ -74,19 +74,11 @@ export default function Landing() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center">
-              {scrolled ? (
-                <img
-                  src={BTREE_LOGO_GREEN}
-                  alt="BTREE Ambiental"
-                  className="h-10 w-auto object-contain"
-                />
-              ) : (
-                <img
-                  src={BTREE_LOGO_GREEN}
-                  alt="BTREE Ambiental"
-                  className="h-10 w-auto object-contain brightness-0 invert"
-                />
-              )}
+              <img
+                src={BTREE_LOGO_GREEN}
+                alt="BTREE Ambiental"
+                className={`h-10 w-auto object-contain transition-all duration-300 ${scrolled ? "" : "brightness-0 invert"}`}
+              />
             </div>
 
             {/* Desktop nav */}
