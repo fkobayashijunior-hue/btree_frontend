@@ -369,3 +369,21 @@
 - [ ] Relatório de veículos
 - [ ] Relatório de presença/pagamento
 - [ ] Relatório de peças/estoque
+
+---
+
+## 🔧 CORREÇÃO CRÍTICA: ERRO "FAILED TO FETCH" NO LOGIN (07/03/2026)
+
+- [x] Diagnosticar erro: frontend chamava `onrender.com/api/trpc` (servidor antigo)
+- [x] Corrigir `client/src/main.tsx`: usar `window.location.origin/api/trpc` como fallback
+- [x] Gerar novo build de produção com Vite (`pnpm vite build`)
+- [x] Compilar servidor Node.js com esbuild
+- [x] Fazer upload dos arquivos corrigidos para Hostinger via SCP
+- [x] Redefinir senha do admin para `btree@2024` (senha anterior era desconhecida)
+- [x] Verificar login funcionando em produção: ✅ OK
+- [x] Atualizar script de build no `package.json`
+
+**Credenciais de acesso:**
+- Email: fkobayashijunior@gmail.com
+- Senha: btree@2024
+

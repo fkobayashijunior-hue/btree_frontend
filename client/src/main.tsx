@@ -42,7 +42,7 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: import.meta.env.VITE_API_URL 
         ? `${import.meta.env.VITE_API_URL}/api/trpc`
-        : "https://btree-ambiental.onrender.com/api/trpc",
+        : `${window.location.origin}/api/trpc`,
       transformer: superjson,
       fetch(input, init) {
         return globalThis.fetch(input, {
