@@ -387,3 +387,12 @@
 - Email: fkobayashijunior@gmail.com
 - Senha: btree@2024
 
+
+---
+
+## 🔧 CORREÇÃO: BOTÃO "ÁREA DO COLABORADOR" REDIRECIONANDO PARA MANUS OAUTH (07/03/2026)
+
+- [x] Corrigir `client/src/const.ts`: `getLoginUrl()` agora retorna `/login` em vez do OAuth do Manus
+- [x] Corrigir `client/src/main.tsx`: redirecionamento de não-autenticado usa `/login` diretamente
+- [x] Verificar todos os usos de `getLoginUrl` nos componentes Landing.tsx, useAuth.ts, DashboardLayout.tsx
+
